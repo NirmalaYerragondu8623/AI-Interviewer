@@ -7,10 +7,17 @@ const PHASE_LABEL = {
   finishing: "Generating your overall feedback…",
 };
 
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
+
 export default function InterviewWorkspace({
   session,
   currentQuestion,
   phase,
+  timeLeft,
   error,
   audioRef,
   onAudioEnded,
@@ -47,7 +54,11 @@ export default function InterviewWorkspace({
           <div className="question-box">{currentQuestion.question_text}</div>
           <audio ref={audioRef} onEnded={onAudioEnded} />
           {PHASE_LABEL[phase] && <p className="phase-status">{PHASE_LABEL[phase]}</p>}
-          {phase === "recording" && <div className="recording-indicator">● Recording</div>}
+          {phase === "recording" && (
+            <div className="recording-indicator">
+              ● Recording — {formatTime(timeLeft)} left
+            </div>
+          )}
         </>
       ) : (
         <p className="phase-status">{PHASE_LABEL[phase] || "Preparing…"}</p>

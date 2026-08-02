@@ -16,6 +16,8 @@ import TranscriptPanel from "../components/TranscriptPanel";
 import InterviewWorkspace from "../components/InterviewWorkspace";
 import OverallResults from "../components/OverallResults";
 
+const ANSWER_TIME_LIMIT_SECONDS = 60;
+
 export default function InterviewPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -34,6 +36,7 @@ export default function InterviewPage() {
   const [latestAnswerFeedback, setLatestAnswerFeedback] = useState(null);
   const [overallFeedback, setOverallFeedback] = useState(null);
   const [error, setError] = useState(null);
+  const [timeLeft, setTimeLeft] = useState(ANSWER_TIME_LIMIT_SECONDS);
 
   const audioRef = useRef(null);
   const micStreamRef = useRef(null);
@@ -94,6 +97,24 @@ export default function InterviewPage() {
       micStreamRef.current?.getTracks().forEach((track) => track.stop());
     };
   }, []);
+
+  // Answer countdown: ticks while recording, resets each time recording (re)starts.
+  useEffect(() => {
+    if (phase !== "recording") return;
+    setTimeLeft(ANSWER_TIME_LIMIT_SECONDS);
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => Math.max(0, prev - 1));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [phase]);
+
+  // When the countdown hits zero, auto-submit — same as clicking "Next Question".
+  useEffect(() => {
+    if (phase === "recording" && timeLeft === 0) {
+      handleNext();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timeLeft, phase]);
 
   function startRecording() {
     const stream = micStreamRef.current;
@@ -249,6 +270,7 @@ export default function InterviewPage() {
             session={interviewSession}
             currentQuestion={currentQuestion}
             phase={phase}
+            timeLeft={timeLeft}
             error={error}
             audioRef={audioRef}
             onAudioEnded={handleAudioEnded}
