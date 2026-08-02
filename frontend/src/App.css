@@ -204,10 +204,22 @@ button.secondary {
 }
 
 .session-card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: inherit;
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 12px 14px;
   background: var(--bg);
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.session-card:hover {
+  border-color: var(--accent-border);
+  opacity: 1;
 }
 
 .session-card-top {

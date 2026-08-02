@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   base64ToAudioUrl,
   createSession,
   finishSession,
   getNextQuestion,
+  getSessionState,
   listTopics,
   skipQuestion,
   submitAnswer,
@@ -16,6 +17,9 @@ import InterviewWorkspace from "../components/InterviewWorkspace";
 import OverallResults from "../components/OverallResults";
 
 export default function InterviewPage() {
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const [topics, setTopics] = useState([]);
   const [topicsLoading, setTopicsLoading] = useState(true);
   const [selectedTopic, setSelectedTopic] = useState("");
@@ -41,6 +45,35 @@ export default function InterviewPage() {
       .then(setTopics)
       .catch((err) => setError(err.message))
       .finally(() => setTopicsLoading(false));
+  }, []);
+
+  useEffect(() => {
+    const resumeId = searchParams.get("resume");
+    if (!resumeId) return;
+
+    (async () => {
+      setStarting(true);
+      setError(null);
+      try {
+        const state = await getSessionState(resumeId);
+        if (state.session.status !== "in_progress") {
+          navigate(`/sessions/${resumeId}`, { replace: true });
+          return;
+        }
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        micStreamRef.current = stream;
+        setInterviewSession(state.session);
+        setAnswers(state.answers);
+        setOverallFeedback(null);
+        await loadNextQuestion(state.session.id);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setStarting(false);
+        setSearchParams({}, { replace: true });
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

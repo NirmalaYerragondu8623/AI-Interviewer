@@ -4,6 +4,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import LoginPage from "./pages/LoginPage";
 import InterviewPage from "./pages/InterviewPage";
 import SessionsPage from "./pages/SessionsPage";
+import SessionDetailPage from "./pages/SessionDetailPage";
 import "./App.css";
 
 export default function App() {
@@ -25,6 +26,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <SessionsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/sessions/:id"
+            element={
+              <ProtectedRoute>
+                <SessionDetailPage />
               </ProtectedRoute>
             }
           />
